@@ -1,0 +1,12 @@
+{
+  "name": "ai-career-intelligence",
+  "version": "1.0.0",
+  "description": "A fully functional, production-ready AI/ML-powered recruitment and career intelligence SaaS application.",
+  "scripts": {
+    "vercel-build": "cd frontend && npm install && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aryan054/ai-career-intelligence.git"
+  }
+}
