@@ -42,6 +42,7 @@ jobs:
       env:
         DATABASE_URL: postgresql://ai_user:secretpassword@localhost:5432/ai_career_db
         SECRET_KEY: test_secret_key
+        PYTHONPATH: .
       run: |
         cd backend
         pytest
