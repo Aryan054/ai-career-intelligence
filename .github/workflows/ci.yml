@@ -45,4 +45,5 @@ jobs:
         PYTHONPATH: .
       run: |
         cd backend
+        alembic upgrade head
         pytest
