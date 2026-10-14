@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-let rawBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+let rawBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1';
 rawBaseURL = rawBaseURL.trim().replace(/\/+$/, '');
 const baseURL = rawBaseURL.endsWith('/api/v1') ? rawBaseURL : `${rawBaseURL}/api/v1`;
 
