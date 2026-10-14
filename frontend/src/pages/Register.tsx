@@ -38,7 +38,13 @@ const Register = () => {
       
       navigate('/login', { state: { message: 'Registration successful! Please sign in.' } });
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to register. Please try again.');
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        setError('Server response timed out. The backend might be starting up from cold sleep. Please wait ~30 seconds and try again.');
+      } else if (!err.response) {
+        setError('Cannot reach the server. The backend may be offline or starting up.');
+      } else {
+        setError(err.response?.data?.detail || 'Failed to register. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

@@ -55,7 +55,13 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err: any) {
-      setError('Invalid credentials');
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        setError('Server response timed out. The backend might be starting up from cold sleep (takes ~45s on free tier). Please try again in a few moments.');
+      } else if (!err.response) {
+        setError('Cannot connect to the server. The backend may be offline or starting up.');
+      } else {
+        setError(err.response?.data?.detail || 'Invalid email or password.');
+      }
     } finally {
       setLoading(false);
     }
