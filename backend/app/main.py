@@ -22,7 +22,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Set up CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # For development
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

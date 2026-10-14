@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import apiClient from '../api/client';
 import { useNavigate, Link } from 'react-router-dom';
@@ -11,10 +11,10 @@ const Register = () => {
   const [role, setRole] = useState<'CANDIDATE' | 'RECRUITER'>('CANDIDATE');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, token, user } = useAuth();
+  const { token, user } = useAuth();
   const navigate = useNavigate();
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (token && user) {
       if (user.role === 'RECRUITER') {
         navigate('/recruiter', { replace: true });
@@ -24,12 +24,12 @@ const Register = () => {
     }
   }, [token, user, navigate]);
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const response = await apiClient.post('/auth/register', {
+      await apiClient.post('/auth/register', {
         email,
         password,
         full_name: fullName,

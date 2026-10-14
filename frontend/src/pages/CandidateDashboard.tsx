@@ -100,7 +100,7 @@ const CandidateDashboard = () => {
     try {
       setUploading(true);
       setMessage('Uploading...');
-      const response = await apiClient.post('/resumes/upload', formData, {
+      await apiClient.post('/resumes/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

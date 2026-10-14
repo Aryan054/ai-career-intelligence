@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
@@ -8,7 +8,6 @@ const RecruiterDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
-  const [submitting, setSubmitting] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
   const [expandedJobId, setExpandedJobId] = useState<number | null>(null);
   const [applicants, setApplicants] = useState<any[]>([]);

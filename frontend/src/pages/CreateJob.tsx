@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import apiClient from '../api/client';
 
@@ -9,7 +9,7 @@ const CreateJob = () => {
   // Basic Info
   const [title, setTitle] = useState('');
   const [companyName, setCompanyName] = useState('Demo Company');
-  const [companyLogo, setCompanyLogo] = useState('');
+  const [companyLogo] = useState('');
   const [description, setDescription] = useState('');
   
   // Job Details
@@ -32,9 +32,9 @@ const CreateJob = () => {
   const [salaryPeriod, setSalaryPeriod] = useState('Per Year');
 
   // Education & Benefits
-  const [educationLevel, setEducationLevel] = useState<string[]>([]);
-  const [fieldOfStudy, setFieldOfStudy] = useState<string[]>([]);
-  const [benefits, setBenefits] = useState<string[]>([]);
+  const [educationLevel] = useState<string[]>([]);
+  const [fieldOfStudy] = useState<string[]>([]);
+  const [benefits] = useState<string[]>([]);
 
   // Application Details
   const [openings, setOpenings] = useState('');
