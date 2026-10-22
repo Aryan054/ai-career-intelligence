@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import CandidateDashboard from './pages/CandidateDashboard';
 import RecruiterDashboard from './pages/RecruiterDashboard';
 import CreateJob from './pages/CreateJob';
+import { ServerWakeupBanner } from './components/ServerWakeupBanner';
 import './index.css';
 
 const ProtectedRoute = ({ children, allowedRole }: { children: React.ReactNode, allowedRole?: string }) => {
@@ -32,6 +33,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <ServerWakeupBanner />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

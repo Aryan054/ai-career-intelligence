@@ -23,10 +23,18 @@ const Login = () => {
     }
   }, [token, user, navigate]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [loadingPhase, setLoadingPhase] = useState<'connecting' | 'waking'>('connecting');
+
+  const handleLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setError('');
     setLoading(true);
+    setLoadingPhase('connecting');
+
+    const wakeTimer = setTimeout(() => {
+      setLoadingPhase('waking');
+    }, 3500);
+
     try {
       const formData = new URLSearchParams();
       formData.append('username', email);
@@ -47,6 +55,7 @@ const Login = () => {
         }
       });
       
+      clearTimeout(wakeTimer);
       login(token, meResponse.data);
       
       if (meResponse.data.role === 'RECRUITER') {
@@ -55,14 +64,23 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err: any) {
+      clearTimeout(wakeTimer);
+      const isLocalUrl = apiClient.defaults.baseURL?.includes('localhost') || apiClient.defaults.baseURL?.includes('127.0.0.1');
+      const isHosted = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+
       if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        setError('Server response timed out. The backend might be starting up from cold sleep (takes ~45s on free tier). Please try again in a few moments.');
+        setError('Server response timed out. The backend might still be waking up from cold sleep (Render free tier takes ~30-50s). Please click "Retry" below.');
       } else if (!err.response) {
-        setError('Cannot connect to the server. The backend may be offline or starting up.');
+        if (isHosted && isLocalUrl) {
+          setError('Cannot reach backend: The app is running on Vercel, but API URL is defaulting to localhost. Please set your Render backend URL using the "Backend URL" button at the top.');
+        } else {
+          setError('Cannot reach backend server. The Render cloud instance is likely spinning up from sleep (~30-50s). Please wait a few seconds and try again.');
+        }
       } else {
         setError(err.response?.data?.detail || 'Invalid email or password.');
       }
     } finally {
+      clearTimeout(wakeTimer);
       setLoading(false);
     }
   };
@@ -86,8 +104,17 @@ const Login = () => {
         )}
 
         {error && (
-          <div className="bg-red-50 text-red-700 border border-red-200 p-3 rounded-lg mb-6 text-sm font-medium">
-            {error}
+          <div className="bg-red-50 text-red-700 border border-red-200 p-3.5 rounded-lg mb-6 text-sm">
+            <p className="font-medium leading-relaxed">{error}</p>
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleLogin()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-semibold shadow-sm transition-colors"
+              >
+                Retry Now
+              </button>
+            </div>
           </div>
         )}
 
@@ -134,8 +161,17 @@ const Login = () => {
             disabled={loading}
             className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : 'Sign in'}
-            {!loading && <ArrowRight className="w-4 h-4" />}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                {loadingPhase === 'waking' ? 'Waking up cloud server...' : 'Signing in...'}
+              </span>
+            ) : (
+              <>
+                <span>Sign in</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 

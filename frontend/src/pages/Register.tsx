@@ -24,10 +24,19 @@ const Register = () => {
     }
   }, [token, user, navigate]);
 
-  const handleRegister = async (e: FormEvent) => {
-    e.preventDefault();
+  const [loadingPhase, setLoadingPhase] = useState<'connecting' | 'waking'>('connecting');
+
+  const handleRegister = async (e?: FormEvent) => {
+    if (e) e.preventDefault();
     setError('');
     setLoading(true);
+    setLoadingPhase('connecting');
+
+    // If server takes > 3.5s to respond, it is likely warming up from Render sleep
+    const wakeTimer = setTimeout(() => {
+      setLoadingPhase('waking');
+    }, 3500);
+
     try {
       await apiClient.post('/auth/register', {
         email,
@@ -35,17 +44,26 @@ const Register = () => {
         full_name: fullName,
         role
       });
-      
+      clearTimeout(wakeTimer);
       navigate('/login', { state: { message: 'Registration successful! Please sign in.' } });
     } catch (err: any) {
+      clearTimeout(wakeTimer);
+      const isLocalUrl = apiClient.defaults.baseURL?.includes('localhost') || apiClient.defaults.baseURL?.includes('127.0.0.1');
+      const isHosted = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+
       if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        setError('Server response timed out. The backend might be starting up from cold sleep. Please wait ~30 seconds and try again.');
+        setError('Server response timed out. The backend might still be waking up from cold sleep (Render free tier takes ~30-50s). Please click "Retry" below.');
       } else if (!err.response) {
-        setError('Cannot reach the server. The backend may be offline or starting up.');
+        if (isHosted && isLocalUrl) {
+          setError('Cannot reach backend: The app is running on Vercel, but API URL is defaulting to localhost. Please set your Render backend URL using the "Backend URL" button at the top.');
+        } else {
+          setError('Cannot reach backend server. The Render cloud instance is likely spinning up from sleep (~30-50s). Please wait a few seconds and try again.');
+        }
       } else {
         setError(err.response?.data?.detail || 'Failed to register. Please try again.');
       }
     } finally {
+      clearTimeout(wakeTimer);
       setLoading(false);
     }
   };
@@ -63,8 +81,17 @@ const Register = () => {
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-700 border border-red-200 p-3 rounded-lg mb-6 text-sm font-medium">
-            {error}
+          <div className="bg-red-50 text-red-700 border border-red-200 p-3.5 rounded-lg mb-6 text-sm">
+            <p className="font-medium leading-relaxed">{error}</p>
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleRegister()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-semibold shadow-sm transition-colors"
+              >
+                Retry Now
+              </button>
+            </div>
           </div>
         )}
 
@@ -153,8 +180,17 @@ const Register = () => {
             disabled={loading}
             className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating account...' : 'Create account'}
-            {!loading && <ArrowRight className="w-4 h-4" />}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                {loadingPhase === 'waking' ? 'Waking up cloud server...' : 'Creating account...'}
+              </span>
+            ) : (
+              <>
+                <span>Create account</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 

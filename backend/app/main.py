@@ -44,6 +44,14 @@ app.include_router(ai_router, prefix=f"{settings.API_V1_STR}/ai", tags=["ai"])
 app.include_router(profiles_router, prefix=f"{settings.API_V1_STR}/profiles", tags=["profiles"])
 app.include_router(applications_router, prefix=f"{settings.API_V1_STR}/applications", tags=["applications"])
 
+@app.get("/")
+def root_check():
+    return {"status": "ok", "message": "AI Career Intelligence API is active"}
+
+@app.get("/health")
+def root_health():
+    return {"status": "ok", "message": "API is active"}
+
 @app.get(f"{settings.API_V1_STR}/health")
 def health_check():
     return {"status": "ok", "message": "API is healthy"}
