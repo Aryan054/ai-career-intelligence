@@ -1,12 +1,25 @@
-import spacy
 import re
+import logging
 
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    import spacy.cli
-    spacy.cli.download("en_core_web_sm")
-    nlp = spacy.load("en_core_web_sm")
+logger = logging.getLogger(__name__)
+
+_nlp = None
+
+def get_nlp():
+    global _nlp
+    if _nlp is None:
+        try:
+            import spacy
+            try:
+                _nlp = spacy.load("en_core_web_sm", disable=["ner", "textcat"])
+            except OSError:
+                import spacy.cli
+                spacy.cli.download("en_core_web_sm")
+                _nlp = spacy.load("en_core_web_sm", disable=["ner", "textcat"])
+        except Exception as e:
+            logger.warning(f"Could not load spaCy model: {e}. Falling back to dictionary matching.")
+            return None
+    return _nlp
 
 # Expanded skill dictionary for exact skill matching
 SKILL_DICTIONARY = {
@@ -81,19 +94,29 @@ def clean_text(text: str) -> str:
 
 def extract_skills(text: str) -> list[str]:
     text_lower = text.lower()
-    doc = nlp(text_lower)
-    
     extracted = set()
     
-    # 1. Basic dictionary matching
-    for token in doc:
-        if token.text in SKILL_DICTIONARY:
-            extracted.add(SKILL_DICTIONARY[token.text])
-            
-    for chunk in doc.noun_chunks:
-        chunk_text = chunk.text.strip()
-        if chunk_text in SKILL_DICTIONARY:
-            extracted.add(SKILL_DICTIONARY[chunk_text])
+    nlp = get_nlp()
+    if nlp is not None:
+        doc = nlp(text_lower)
+        # 1. Basic dictionary matching
+        for token in doc:
+            if token.text in SKILL_DICTIONARY:
+                extracted.add(SKILL_DICTIONARY[token.text])
+                
+        for chunk in doc.noun_chunks:
+            chunk_text = chunk.text.strip()
+            if chunk_text in SKILL_DICTIONARY:
+                extracted.add(SKILL_DICTIONARY[chunk_text])
+    else:
+        # Fast regex fallback when memory is constrained
+        words = set(re.findall(r'\b[a-zA-Z0-9_\-\.]+\b', text_lower))
+        for word in words:
+            if word in SKILL_DICTIONARY:
+                extracted.add(SKILL_DICTIONARY[word])
+        for phrase, canonical in SKILL_DICTIONARY.items():
+            if " " in phrase and phrase in text_lower:
+                extracted.add(canonical)
             
     # 2. Extract from "Skills" or "Technical Skills" section
     lines = text.split('\n')
