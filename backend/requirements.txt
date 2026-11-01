@@ -26,7 +26,8 @@ en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_
 fastapi==0.110.0
 filelock==3.32.4
 fsspec==2026.7.0
-greenlet==3.5.5
+greenlet==3.5.5
+gunicorn==21.2.0
 h11==0.16.0
 httpcore==1.0.9
 httptools==0.8.0
